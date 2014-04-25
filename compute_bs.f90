@@ -282,6 +282,8 @@ subroutine field_deriv(neq, t, y, dydx)
   ! compute br and bphi
   br = bxyz(1)*cos(t) + bxyz(2)*sin(t)
   bphi = -bxyz(1)*sin(t) + bxyz(2)*cos(t)
+  ! special for protocleo 1/r field
+  bphi = bphi + bphi_bg/y(1)
   ! compute dydx
   ! write (*,'(6(F10.7,2X))'),pxyz(:),bxyz(:)
   ! write (*,'(3(F10.7,2X))'),y(:),t

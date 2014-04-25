@@ -172,6 +172,9 @@ subroutine read_input
      points_hit_divertor(:) = 0
   end if
 
+  call read_until_data(filenum, line)
+  call string_to_real(line, bphi_bg)
+
   ! No more to read
 
 end subroutine read_input

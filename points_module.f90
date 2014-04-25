@@ -11,5 +11,6 @@ module points_module
   integer :: n_iter, points_number
   integer :: current_point
   character*72 :: points_file, results_file
+  real :: bphi_bg !bfield at r=1.0 for 1/r field
 
 end module points_module
