@@ -3,9 +3,10 @@ program comprehensive_test
   use coil_module
   use div_module
   use options_module
+  use vessel_module
 
-  integer :: i,j, inside_div, isok, answer
-  real :: dist, D, Te
+  integer :: i,j, inside_div, isok, answer, inside_vessel
+  real :: dist, D, Te, z
   real, dimension(3) :: newp
 
   !Run some tests to make sure everything is correct
@@ -41,14 +42,14 @@ program comprehensive_test
   do i=1,6
      taper(i) = (0.02*i)
      do j=0,7
-        aux_current(i + (j*6)) = main_current(1)*14 * 0.02*i
-        
+        aux_current(i + (j*6)) = main_current(1)* 14*0.02*i
      end do
   end do
 
   points_move(1,:) = points_start(1,:)
   call follow_field(points_move(1,:), points_dphi, dist)
-  if ((points_move(1,1).gt.1.09810).and.(points_move(1,1).lt.(1.09811)).and.&
+  !print *,points_move
+  if ((points_move(1,1).gt.1.09810).and.(points_move(1,1).lt.(1.09812)).and.&
       (points_move(1,2).gt.(-0.09564)).and.(points_move(1,2).lt.(-0.09563)))&
       then
      print *,'test with auxiliary current PASS'
@@ -104,7 +105,44 @@ program comprehensive_test
   else
      print *,'Divertor test 2 PASS'
   end if
+
+  vessel_file = 'vessel.txt'
+  call allocate_vessel()
+  call load_vessel()
+  num_vessels = 1
+  isok = 1
   
+  do i=0,10
+     z = real(i)/100 + 0.2
+     !print *,'z',z
+     answer = inside_vessel(1.3, z, 0.39269, vessel, vessel_size)
+     !isin = inside_vessel(1.3, z, 1.0, vessel, vessel_size)
+     if ((z.gt.0.245).and.(answer.eq.1)) isok = 0
+     if ((z.lt.0.245).and.(answer.eq.0)) isok = 0
+  enddo
+  if (isok.eq.0) then
+     print *,'Vessel test 1 FAIL'
+  else
+     print *,'Vessel test 1 PASS'
+  end if  
+
+  isok = 1
+  do i=0,10
+     z = real(i)/100 + 0.2
+     z = z*(-1)
+     !print *,'z',z
+     answer = inside_vessel(1.3, z, 1.17809, vessel, vessel_size)
+     !isin = inside_vessel(1.3, z, 1.0, vessel, vessel_size)
+     if ((z.lt.-0.245).and.(answer.eq.1)) isok = 0
+     if ((z.gt.-0.245).and.(answer.eq.0)) isok = 0
+  enddo
+  if (isok.eq.0) then
+     print *,'Vessel test 2 FAIL'
+  else
+     print *,'Vessel test 2 PASS'
+  end if  
+
+
 
   !! tests for diffusion
   points_start(1,1) = 1.45
