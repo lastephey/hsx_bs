@@ -98,6 +98,24 @@ subroutine read_input
      taper(i) = dummy
   end do
 
+  !Asymmetric coils
+  call read_until_data(filenum, line)
+  asym_file = trim(adjustl(line))
+
+  ! Number of asym coils
+  call read_until_data(filenum, line)
+  call string_to_int(line, num_asym_coils)
+  
+  ! Allocate the asym values
+  call allocate_asym(asym_file)
+
+  ! asym taper values
+  do i = 1,num_asym_coils
+     call read_until_data(filenum, line)
+     call string_to_real(line, dummy)
+     asym_taper(i) = dummy
+  end do
+
   call read_coil_files()
 
   ! DIFFUSION INFO ------------------------

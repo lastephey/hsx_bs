@@ -90,6 +90,50 @@ subroutine allocate_aux()
   close(filenum)
 end subroutine allocate_aux
 
+subroutine allocate_asym()
+  use coil_module
+  implicit none
+
+  integer :: i,j,k
+
+  integer :: temp_size, dummy, filenum
+  real :: x,y,z !dummy variables
+
+  if (num_asym_coils == 0) then
+     return
+  end if
+
+  filenum = 41
+
+  open(filenum, file=trim(asym_file), status='old', form='formatted')
+  read(filenum,*) dummy
+  
+  asym_taper_size = num_asym_coils
+  asym_count = num_asym_coils
+  asym_size = 0
+  do i=1,num_asym_coils
+     read(filenum,*) temp_size
+     do j=1,temp_size
+        read(filenum,*) x,y,z
+     enddo
+     ! save the largest value in asym_size
+     if (temp_size > asym_size) then
+        asym_size = temp_size
+     end if
+  end do
+
+  ! Give a point of slop (for wraparound if desired)
+  asym_size = asym_size+1
+
+  ! do the allocations
+  allocate(coil_asym(asym_count, asym_size, 3))
+  allocate(asym_current(asym_count))
+  allocate(asym_points(asym_count))
+  allocate(asym_taper(asym_taper_size))
+
+  close(filenum)
+end subroutine allocate_asym
+
 subroutine deallocate_coils()
   use coil_module
   deallocate(coil_main)  
@@ -102,6 +146,13 @@ subroutine deallocate_coils()
      deallocate(aux_points)
      deallocate(taper)
   end if
+
+  if (num_asym_coils > 1) then
+     deallocate(coil_asym)
+     deallocate(asym_current)
+     deallocate(asym_points)
+     deallocate(asym_taper)
+  end if  
 end subroutine deallocate_coils
   
 
@@ -218,6 +269,27 @@ subroutine read_coil_files()
         aux_current(i + (j*taper_size)) = main_current(1)*taper(i)*main_winding
      enddo
   enddo
+
+  ! Read asymmetric coils
+  if (num_asym_coils > 0) then
+     open(68,file=asym_file,status='old',form='formatted')
+     read(68,*) dummy
+     do i=1,num_asym_coils
+        read(68,*) asym_points(i)
+        do j=1,asym_points(i)
+           read(68,*) x,y,z
+           coil_asym(i,j,1) = x
+           coil_asym(i,j,2) = y
+           coil_asym(i,j,3) = z
+        enddo
+     enddo
+     close(68)
+  end if
+
+  ! Currents for asym coils
+  do i=1,asym_taper_size
+     asym_current(i) = main_current(1)*asym_taper(i)*main_winding
+  end do
 
   return
 end subroutine read_coil_files

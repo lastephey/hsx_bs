@@ -14,6 +14,9 @@ subroutine compute_full_bs(p, b)
   ! aux fields
   call compute_bs(p, 1, btemp)
   b = b + btemp
+  ! asym fields
+  call compute_bs(p, 2, btemp)
+  b = b + btemp
 end subroutine compute_full_bs
   
 
@@ -54,6 +57,8 @@ real :: mu0, pi
 b=0
 if (isaux == 1) then  
    coilnumber = aux_count
+elseif (isaux == 2) then
+   coilnumber = asym_count
 else
    coilnumber = main_count
 endif
@@ -72,6 +77,9 @@ do i=1,coilnumber
       if (isaux == 1) then
          numcoilpts = aux_points(i)
          current = aux_current(i)
+      elseif (isaux == 2) then
+         numcoilpts = asym_points(i)
+         current = asym_current(i)
       else
          numcoilpts = main_points(i)
          current = main_current(i)
@@ -102,6 +110,10 @@ do i=1,coilnumber
         xcoil=coil_aux(i,1:numcoilpts,1)
         ycoil=coil_aux(i,1:numcoilpts,2)
         zcoil=coil_aux(i,1:numcoilpts,3)
+      elseif (isaux == 2) then
+        xcoil=coil_asym(i,1:numcoilpts,1)
+        ycoil=coil_asym(i,1:numcoilpts,2)
+        zcoil=coil_asym(i,1:numcoilpts,3)
       else
         xcoil=coil_main(i,1:numcoilpts,1)
         ycoil=coil_main(i,1:numcoilpts,2)
