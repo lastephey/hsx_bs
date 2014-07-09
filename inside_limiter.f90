@@ -7,6 +7,8 @@ subroutine allocate_limiter()
 
 
   if (num_limiters == 0) return
+  
+  ! print *, 'number of limiters loaded:',num_limiters
 
   max_size = 0
   ! Read through all limiter files and set allocation values
@@ -14,6 +16,7 @@ subroutine allocate_limiter()
   allocate(lim_bvector(num_limiters, 3))
   allocate(lim_baxis(num_limiters, 3))
   allocate(lim_inside(num_limiters))
+  
 
   do i=1,num_limiters
 
@@ -48,7 +51,7 @@ subroutine load_limiter()
   do i=1,num_limiters
 
      open(filenum,file=trim(lim_files(i)),status='old',form='formatted')
-
+     
 
      ! the first two value should give the number of toroidal and poloidal
      ! points respectively.
@@ -71,9 +74,10 @@ end subroutine load_limiter
 
 
 ! note, point is in r,z,phi
-integer function inside_limiter(r,z,phi)
+integer function inside_limiter(r, z, phi)
 
   use limiter_module
+  use points_module
 
   implicit none
 
@@ -102,7 +106,14 @@ integer function inside_limiter(r,z,phi)
 
 
   do i=1,num_limiters
-
+     
+     ! Only do the calculation if you are less than the step number
+     if (lim_minstep(i) .gt. current_step) then
+        is_near_helical_plane = 0
+        inside_limiter = 0
+        cycle
+     end if
+     
      allocate(Xpoly(limiter_size(i)))
      allocate(Ypoly(limiter_size(i)))
 
@@ -130,16 +141,18 @@ integer function inside_limiter(r,z,phi)
         inside_limiter=0
         cycle
      endif
+     
+     ! print *, 'point is closer than 1 radian'
 
      ! use the B field vector as the normal vector to the helical plane. Find
      ! the distance to this plane by using the dot product.
 
      dist_axis = pointc - lim_baxis(i,:)
      dist_plane = dot_product(dist_axis, lim_bvector(i,:))
-     ! print *,'phi',point(3)
-     ! print *,'pointc',pointc(:)
-     ! print *,'dist_axis',dist_axis(:)
-     ! print *,'dist_plane',dist_plane
+     !print *,'phi',point(3)
+     !print *,'pointc',pointc(:)
+     !print *,'dist_axis',dist_axis(:)
+     !print *,'dist_plane',dist_plane
 
 
      ! Check if we're too far away
@@ -198,6 +211,7 @@ integer function inside_limiter(r,z,phi)
      if (inside_limiter == 1) exit
 
      ! print *, 'inside_limiter=', inside_limiter
+     
 
   end do
 
