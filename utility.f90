@@ -205,3 +205,22 @@ real function distance_to_plane(point, plane_vec, point_plane)
   distance_to_plane = dot_product(plane_vec/plane_vec_mag, point - point_plane)
   return
 end function distance_to_plane
+
+subroutine line_plane_intersect(p1, p2, plane_vec, point_plane, pint)
+  real, dimension(3) :: p1, p2, plane_vec, point_plane, pint, plane_vec_norm
+  real :: plane_vec_mag, num, denom, d
+
+  plane_vec_mag = sqrt(plane_vec(1)**2 + plane_vec(2)**2 + plane_vec(3)**2)
+  plane_vec_norm = plane_vec / plane_vec_mag
+
+  num = dot_product(point_plane - p1, plane_vec_norm)
+  denom = dot_product(p2 - p1, plane_vec_norm)
+
+  d = num/denom
+
+  pint = p1 + d * (p2 - p1)
+
+end subroutine line_plane_intersect
+
+  
+  
