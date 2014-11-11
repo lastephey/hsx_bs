@@ -196,4 +196,12 @@ subroutine cross_product(a, b, c)
   c(3) = a(1) * b(2) - a(2) * b(1)
   return
 end subroutine cross_product
-  
+
+real function distance_to_plane(point, plane_vec, point_plane)
+  real, dimension(3) :: point, plane_vec, point_plane
+  real :: plane_vec_mag
+
+  plane_vec_mag = sqrt(plane_vec(1)**2 + plane_vec(2)**2 + plane_vec(3)**2)
+  distance_to_plane = dot_product(plane_vec/plane_vec_mag, point - point_plane)
+  return
+end function distance_to_plane
