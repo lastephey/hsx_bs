@@ -5,11 +5,15 @@ program follow_to_wall
   use points_module
   use options_module
   use lcfs_module
+  use limiter_module
 
-  real,dimension(3) :: p, b, pxyz
+  real,dimension(3) :: p, b, pxyz, temp_point, prev_point, pint
   integer :: i,j,isin, inside_vessel,outfile, istate
-  real :: dphi, totcur, dist, magb
+  real :: dphi, totcur, dist, magb, pi
   real :: distance_to_lcfs, dist_lcfs
+  real :: prev_dtp, cur_dtp, distance_to_plane
+
+  pi = 3.1415927
 
   call read_input()
   ! print *, 'number of LCFS:', num_lcfs
@@ -45,8 +49,15 @@ program follow_to_wall
      magb = (b(1)**2 + b(2)**2 + b(3)**2)**0.5
 
 
-     write(*,'(4(F12.7,2X))'), points_move(j,:), magb
-     
+     write(*,'(4(F12.7,2X))'), points_move(j,:)
+     temp_point = points_move(j,:)
+     temp_point(3) = modulo(temp_point(3), pi / 2.)
+     temp_point(3) = temp_point(3) + (3. * pi / 2)
+     call pol2cart(temp_point, pxyz)
+     prev_dtp = distance_to_plane(pxyz, lim_bvector(1,:), lim_baxis(1,:))
+     prev_point = pxyz
+     !print *,'Begin',pxyz, prev_dtp
+    
 
 
      do i=1,n_iter
@@ -67,6 +78,27 @@ program follow_to_wall
            exit
         end if
         
+        !get distance to plane
+        temp_point = points_move(j,:)
+        !print *,'pre-modulo',temp_point
+        temp_point(3) = modulo(temp_point(3), pi / 2.)
+        temp_point(3) = temp_point(3) + (3. * pi / 2)
+        !print *,'post-modulo',temp_point
+        call pol2cart(temp_point, pxyz)
+        cur_dtp = distance_to_plane(pxyz, lim_bvector(1,:), lim_baxis(1,:))
+        !print *, 'Lim stuff', pxyz, cur_dtp 
+
+        ! we've crossed the plane
+        if ((prev_dtp > 0) .and. (cur_dtp < 0)) then
+           call line_plane_intersect(prev_point, pxyz, lim_bvector(1,:),&
+                                     lim_baxis(1,:), pint)
+           !print *,'Point on plane', pint
+           write (*,'(3(F12.7,2X))'),pint
+        end if
+           
+        prev_dtp = cur_dtp
+        prev_point = pxyz
+           
 
         conn_length(j)=conn_length(j)+dist
        !  print *, 'conn_length(j):', conn_length(j)
@@ -90,9 +122,9 @@ program follow_to_wall
                 points_move(j,3))
 
 
-           write (*,'(5(F12.7,2X))'),points_move(j,:), conn_length(j), dist_lcfs
+           !write (*,'(5(F12.7,2X))'),points_move(j,:), conn_length(j), dist_lcfs
         else
-           write (*,'(5(F12.7,2X))'),points_move(j,:), magb
+           !write (*,'(5(F12.7,2X))'),points_move(j,:), magb
         end if
         
         

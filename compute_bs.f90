@@ -260,18 +260,18 @@ subroutine field_deriv(neq, t, y, dydx)
     dydx = 0
    ! check if we're near the helical plane in the boxport (where the limiter is)  
    ! if we start them at the limiter
-   else if (inside_limiter(y(1), y(2), t) .ge. 1) then
-     points_hit_limiter(current_point)=1
-     points_hit(current_point) = 1
-     points_end(current_point,1:2)=y
-     points_end(current_point,3)=t
-     print *,'-------------------------------'
-     print *,'current point at limiter:',current_point
-     print *,points_end(current_point,:)
-     print *,'-------------------------------'
-     dydx = 0
+   !else if (inside_limiter(y(1), y(2), t) .ge. 1) then
+   !  points_hit_limiter(current_point)=1
+   !  points_hit(current_point) = 1
+   !  points_end(current_point,1:2)=y
+   !  points_end(current_point,3)=t
+   !  print *,'-------------------------------'
+   !  print *,'current point at limiter:',current_point
+   !  print *,points_end(current_point,:)
+   !  print *,'-------------------------------'
+   !  dydx = 0
    	  
-     return
+   !  return
   end if
      
 
