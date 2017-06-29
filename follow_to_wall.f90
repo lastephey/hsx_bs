@@ -7,6 +7,7 @@ subroutine follow_to_wall
   use lcfs_module
   use div_module
   use coil_module
+  use omp_lib !add library so we can use openMP for threading
 
   double precision,dimension(3) :: p, b, pxyz
   integer :: i,j,isin, inside_vessel,outfile, istate
@@ -41,7 +42,9 @@ subroutine follow_to_wall
 
    
   points_move(:,:) = points_start(:,:)
-
+  
+!$openmp parallel
+!$openemp do
   do j=points_ind_begin,points_ind_end
      points_complete(j) = 1
      
@@ -58,8 +61,6 @@ subroutine follow_to_wall
 
      write(lf,'(4(F12.7,2X))'), points_move(j,:), magb
      
-
-
      do i=1,n_iter
      	! keep track of number of steps for limiter calculation
      	current_step=i
@@ -123,6 +124,8 @@ subroutine follow_to_wall
         !write (1,'(3(F9.6,2X))') p(1:3)
      enddo
   enddo
+ !$omp end do 
+
 
   if (num_procs > 1) call gather_results
   if (my_pn == 0) call record_output(outfile)
@@ -143,6 +146,7 @@ subroutine record_output(filenum)
   
   integer :: j,k,filenum
   
+!$omp do
   do j=1,points_number
      if (points_complete(j) == 1) then
         write (filenum,*) 'point number',j,' completed orbit'
@@ -167,5 +171,10 @@ subroutine record_output(filenum)
      end if
      write (filenum,*) '------------------'
   enddo  
+  
+!$omp end do
+!$omp end parallel
+  
+  
   
 end subroutine record_output
