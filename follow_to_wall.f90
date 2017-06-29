@@ -44,7 +44,7 @@ subroutine follow_to_wall
   points_move(:,:) = points_start(:,:)
   
 !$omp parallel
-!$omp do
+!$omp do schedule(dynamic)
   do j=points_ind_begin,points_ind_end
      points_complete(j) = 1
      
@@ -146,7 +146,7 @@ subroutine record_output(filenum)
   
   integer :: j,k,filenum
   
-!$omp do
+!$omp do schedule(dynamic)
   do j=1,points_number
      if (points_complete(j) == 1) then
         write (filenum,*) 'point number',j,' completed orbit'
