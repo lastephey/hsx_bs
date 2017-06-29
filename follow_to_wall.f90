@@ -43,8 +43,8 @@ subroutine follow_to_wall
    
   points_move(:,:) = points_start(:,:)
   
-!$openmp parallel
-!$openemp do
+!$omp parallel
+!$omp do
   do j=points_ind_begin,points_ind_end
      points_complete(j) = 1
      
